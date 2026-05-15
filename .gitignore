@@ -1,0 +1,53 @@
+# Data (too large for git; on Drive instead)
+track1_2-*.tar.gz
+Track1.2/
+
+# Research PDFs (kept locally only)
+*.pdf
+Research/
+Preliminary Research/
+
+# Training artifacts
+ckpt/
+*.pt
+*.pth
+runs/
+wandb/
+mlruns/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb~
+
+# OS / Editor / IDE
+.DS_Store
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
+# HuggingFace / model cache
+.cache/
+.hf_cache/
+
+# Local configs derived in Colab
+configs/colab_*.yaml
