@@ -1,0 +1,99 @@
+# ASVspoof 5 Track 1 baseline (WavLM-Large frozen + adapter + workers + classifier)
+# data: scripts/download_asvspoof5.py 로 받은 tar를 data.root에 풀기
+#   <root>/{flac_T,flac_D,flac_E_eval}/ + protocols/*.tsv
+
+seed: 42
+device: "cuda"
+
+data:
+  dataset_name: "asvspoof5"
+  root: "./data/asvspoof5"                  # contains flac_T/, flac_D/, [flac_E_eval/], protocols/
+  protocol_train: "protocols/ASVspoof5.train.tsv"
+  protocol_dev:   "protocols/ASVspoof5.dev.track_1.tsv"
+  protocol_eval:  "protocols/ASVspoof5.eval.track_1.tsv"
+  audio_train: "flac_T"
+  audio_dev:   "flac_D"
+  audio_eval:  "flac_E_eval"
+  audio_ext: ".flac"
+  sample_rate: 16000
+  clip_seconds: 4.0
+  peak_normalize: true         # 발화별 peak 0.95. dataset.py와 evaluate.py가 같이 읽음
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 4
+
+augment:
+  rawboost_p: 0.5
+  rawboost_alg: 5            # full-stack
+  musan_p: 0.0               # off unless musan_root provided
+  musan_root: null
+  rir_p: 0.0
+  rir_root: null
+  codec_p: 0.0               # 노트북에서 0.3으로 덮어씀
+  codec_choices: ["mp3", "aac", "amr-nb", "narrowband-8k"]
+  specaug_p: 0.5
+  specaug_F: 27
+  specaug_T: 40
+  specaug_n_freq_masks: 2
+  specaug_n_time_masks: 2
+
+model:
+  ssl:
+    name_or_path: "microsoft/wavlm-large"
+    layer_weighted_sum: true
+    feature_dim: 1024
+    frame_rate_hz: 50
+  adapter:
+    type: "bilstm"                            # "bilstm" | "se_res2net"
+    hidden_dim: 256
+    num_layers: 2
+    dropout: 0.1
+  workers:
+    enabled: ["mfcc", "cqt", "lfcc", "logmel"]
+    mlp_hidden: 128
+    mfcc_dim: 40
+    cqt_dim: 84
+    lfcc_dim: 60
+    logmel_dim: 80
+  classifier:
+    type: "lcnn_big"                          # "lcnn_big" | "senet12"
+    asp_attention_dim: 128
+    label_smoothing: 0.05
+    dropout: 0.1
+
+loss:
+  lambda_workers: 0.1
+  lambda_contrastive: 0.0                    # 미사용
+  lambda_grl: 0.0                            # 미사용
+
+train:
+  batch_size: 8
+  epochs: 10
+  lr_peak: 3.0e-4
+  warmup_ratio: 0.05
+  weight_decay: 1.0e-4
+  betas: [0.9, 0.98]
+  amp: true
+  grad_clip: 1.0
+  early_stopping_patience: 6
+  log_interval: 20
+  save_dir: "./ckpt/baseline"
+  resume: null
+  balance_real_fake: true                    # WeightedRandomSampler
+
+tracking:
+  backend: "wandb"          # "wandb" | "none"
+  project: "asvspoof5-track1"
+  entity: null              # W&B team/user (null = default account)
+  mode: "online"            # "online" | "offline" | "disabled" (WANDB_MODE env 우선)
+  log_grad_norm: true
+
+eval:
+  metric_mode: "internal"                    # "internal" (p_fake) | "official" (score_bonafide = -fake_logit)
+  threshold_search: true
+  sliding_window_hop_seconds: 2.0
+  # minDCF cost (Wang et al. 2024). beta = (Cmiss/Cfa) * (1 - p) / p ~= 1.90
+  mindcf_c_miss: 1.0
+  mindcf_c_fa: 10.0
+  mindcf_p_target: 0.05      # 이름과 달리 spoof prior
