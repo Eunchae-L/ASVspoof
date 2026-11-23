@@ -195,6 +195,8 @@ def main():
     # 모델 구조는 ckpt에 저장된 학습 config 기준 (yaml이 학습 후 바뀌어도 load 가능하게)
     state = torch.load(args.ckpt, map_location=device)
     ckpt_cfg = state.get("config")
+    from utils.compliance import check_config
+    check_config(cfg, extra_cfgs=[ckpt_cfg])   # 학습 때 쓴 백본도 같이 확인
     build_cfg = cfg
     if ckpt_cfg is not None and "model" in ckpt_cfg:
         build_cfg = {**cfg, "model": ckpt_cfg["model"], "loss": ckpt_cfg.get("loss", cfg.get("loss", {}))}

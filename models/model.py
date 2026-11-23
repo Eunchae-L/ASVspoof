@@ -20,6 +20,7 @@ class SSLMultiTaskModel(nn.Module):
         self.ssl = SSLBackbone(
             ssl_cfg["name_or_path"],
             layer_weighted_sum=ssl_cfg.get("layer_weighted_sum", True),
+            normalize_input=ssl_cfg.get("normalize_input", False),
         )
 
         adapter_cfg = cfg["model"]["adapter"]

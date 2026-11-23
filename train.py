@@ -312,7 +312,7 @@ def parse_args():
     ap.add_argument("--smoke", type=int, default=0,
                     help="if >0, subsample this many train items for a smoke test")
     ap.add_argument("--dev-batch-size", type=int, default=None,
-                    help="Override batch size for per-epoch dev eval (no grad → can be 4-8x larger).")
+                    help="Override batch size for per-epoch dev eval (no grad -> can be 4-8x larger).")
     ap.add_argument("--dev-subset", type=int, default=0,
                     help="If >0, randomly subsample N dev utterances for per-epoch eval. "
                          "Final full-dev eval is done separately by evaluate.py.")
@@ -349,6 +349,9 @@ def main():
         cfg["train"]["epochs"] = args.epochs
     if args.batch_size is not None:
         cfg["train"]["batch_size"] = args.batch_size
+
+    from utils.compliance import check_config
+    check_config(cfg)
 
     set_seed(cfg.get("seed", 42))
     device = select_device(cfg.get("device", "cuda"))
@@ -440,6 +443,7 @@ def main():
 
     if resume_path:
         ckpt = torch.load(resume_path, map_location=device)
+        check_config(cfg, extra_cfgs=[ckpt.get("config")])   # 규정 밖 백본으로 학습한 ckpt는 resume 안 함
         model.load_state_dict(ckpt["model"])
         if "optimizer" in ckpt:
             optimizer.load_state_dict(ckpt["optimizer"])
@@ -450,7 +454,7 @@ def main():
         else:
             start_epoch = ckpt.get("epoch", 1)
             resume_start_step = ckpt.get("step_in_epoch", 0)
-            print(f"[resume] mid-epoch ckpt → epoch {start_epoch}, "
+            print(f"[resume] mid-epoch ckpt -> epoch {start_epoch}, "
                   f"step {resume_start_step}부터 재개")
         best_min_dcf = ckpt.get("best_min_dcf", float("inf"))
         best_eer = ckpt.get("best_eer", float("inf"))

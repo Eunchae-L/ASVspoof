@@ -1,4 +1,4 @@
-"""발화별 WavLM feature를 {out}/{file_id}.npy (T, D) fp16으로 저장 (train_cached.py용).
+"""발화별 SSL feature를 {out}/{file_id}.npy (T, D) fp16으로 저장 (train_cached.py용).
 
 layer weight가 0 초기값이라 hidden state 균등 평균이 저장됨 -> layer weight 학습 불가.
 증강도 한 번 고정되므로 epoch마다 RawBoost 다양성은 없음.
@@ -42,9 +42,22 @@ def main():
     args = parse_args()
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
+    from utils.compliance import check_config
+    check_config(cfg)
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # 다른 백본으로 만든 캐시와 섞이지 않게 백본 이름을 같이 저장
+    ssl_name = cfg["model"]["ssl"]["name_or_path"]
+    marker = out_dir / "_ssl_backbone.txt"
+    if marker.exists():
+        prev = marker.read_text().strip()
+        if prev != ssl_name:
+            raise SystemExit(f"[cache] {out_dir} 는 '{prev}' 캐시 (현재 '{ssl_name}'). 다른 --out 경로 사용.")
+    elif any(out_dir.glob("*.npy")):
+        raise SystemExit(f"[cache] {out_dir} 에 백본 표시 없는 .npy 가 있음. 비우거나 다른 경로 사용.")
+    marker.write_text(ssl_name + "\n")
 
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     print(f"[device] {device}")

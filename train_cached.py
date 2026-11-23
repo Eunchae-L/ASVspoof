@@ -211,6 +211,9 @@ def main():
     if args.batch_size is not None:
         cfg["train"]["batch_size"] = args.batch_size
 
+    from utils.compliance import check_config
+    check_config(cfg)
+
     set_seed(cfg.get("seed", 42))
     device = select_device(cfg.get("device", "cuda"))
     print(f"[device] {device}")

@@ -67,6 +67,16 @@ def load_manifest(cache_dir: str) -> List[Tuple[str, int, str]]:
             f"Manifest missing: {path}\n"
             f"Did you run scripts/cache_ssl_features.py for this split?"
         )
+    # 캐시를 만든 백본 이름. 없으면 어떤 모델로 뽑은 캐시인지 알 수 없어서 쓰지 않는다.
+    marker = os.path.join(cache_dir, "_ssl_backbone.txt")
+    if not os.path.isfile(marker):
+        raise FileNotFoundError(
+            f"{marker} 없음. 백본을 알 수 없는 캐시는 쓰지 않음, "
+            f"scripts/cache_ssl_features.py로 다시 생성."
+        )
+    from utils.compliance import check_ssl
+    with open(marker) as fh:
+        check_ssl(fh.read().strip())
     out = []
     with open(path) as fh:
         header = fh.readline().strip().split("\t")

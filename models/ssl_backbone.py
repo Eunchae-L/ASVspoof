@@ -1,4 +1,8 @@
-"""Frozen SSL backbone (WavLM / wav2vec2 / HuBERT / XLS-R) + learnable layer weighted sum."""
+"""Frozen SSL backbone (WavLM / wav2vec2 / HuBERT / XLS-R) + learnable layer weighted sum.
+
+기본값은 microsoft/wavlm-base (LibriSpeech 960h만 사전학습). WavLM-Large, XLS-R, MMS, *-lv60은
+Evaluation Plan §4.2(open condition)에 걸려서 쓰지 않는다. utils/compliance.py 참고.
+"""
 from __future__ import annotations
 
 import torch
@@ -7,9 +11,11 @@ from transformers import AutoModel
 
 
 class SSLBackbone(nn.Module):
-    def __init__(self, name_or_path: str, layer_weighted_sum: bool = True):
+    def __init__(self, name_or_path: str, layer_weighted_sum: bool = True,
+                 normalize_input: bool = False):
         super().__init__()
         self.name_or_path = name_or_path
+        self.normalize_input = normalize_input
         self.model = AutoModel.from_pretrained(name_or_path)
         self.model.eval()
         for p in self.model.parameters():
@@ -31,6 +37,12 @@ class SSLBackbone(nn.Module):
     def forward(self, wav: torch.Tensor) -> torch.Tensor:
         """wav: (B, num_samples) at 16 kHz -> features (B, T, D)."""
         with torch.no_grad():
+            if self.normalize_input:
+                # Wav2Vec2 feature extractor와 같은 발화 단위 정규화
+                wav = wav.float()
+                wav = (wav - wav.mean(dim=-1, keepdim=True)) / torch.sqrt(
+                    wav.var(dim=-1, keepdim=True, unbiased=False) + 1e-7
+                )
             out = self.model(wav, output_hidden_states=True, return_dict=True)
             hs = torch.stack(out.hidden_states, dim=0)        # (L+1, B, T, D)
 
