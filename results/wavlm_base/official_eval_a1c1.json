@@ -1,0 +1,37 @@
+{
+  "combo": "a1c1",
+  "architecture": "BiLSTM + LCNN",
+  "split": "eval",
+  "rows": 680774,
+  "min_dcf": 0.24951018494546523,
+  "eer_pct": 15.937997057074202,
+  "cllr": 1.0907724976034425,
+  "act_dcf": 0.6338098413250935,
+  "official_commit": "fe23d3053a0889b305d98c9e4cadf418c213d972",
+  "official_repository": "https://github.com/asvspoof-challenge/asvspoof5.git",
+  "score_sha256": "669907ee6dc5bce8d36aba9d8890a44fa4fdff52e930b48fe452bf35aa1e2a31",
+  "command": [
+    "/usr/bin/python3",
+    "/content/asvspoof5_official/evaluation-package/evaluation.py",
+    "--m",
+    "t1",
+    "--cm",
+    "/content/drive/MyDrive/Project/ASVspoof5/experiments/wavlm_base_no_musan_20261106/scores/official/a1c1/eval/cm_scores.tsv",
+    "--cm_keys",
+    "/content/drive/MyDrive/Project/ASVspoof5/experiments/wavlm_base_no_musan_20261106/scores/official/a1c1/eval/cm_keys.tsv"
+  ],
+  "coverage": {
+    "rows": 680774,
+    "expected_rows": 680774,
+    "unique_ids": true,
+    "finite_scores": true,
+    "labels_match_protocol": true,
+    "complete": true
+  },
+  "inference": {
+    "single_segment": true,
+    "sliding": false,
+    "limit": 0
+  },
+  "updated": 1794239310.006572
+}

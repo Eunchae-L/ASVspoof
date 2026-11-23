@@ -1,0 +1,24 @@
+{
+  "split": "dev",
+  "metric_mode": "official",
+  "score_name": "score_bonafide",
+  "sliding": false,
+  "sliding_window_hop_seconds": null,
+  "n_with_labels": 140950,
+  "n_hidden_labels": 0,
+  "ckpt": "/content/wavlm_base_no_musan_20261106/checkpoints/a1c1_wavlmB_nomusan_subset50_epoch20/best.pt",
+  "eer": 0.12396193817182016,
+  "eer_threshold": 3.052734375,
+  "min_dcf": 0.189130743695671,
+  "min_dcf_threshold": 2.9140625,
+  "act_dcf": 0.42285902284907767,
+  "act_dcf_threshold": -0.6418538861723946,
+  "cllr": 0.7656620539811693,
+  "n_pos": 31334,
+  "n_neg": 109616,
+  "mindcf_params": {
+    "c_miss": 1.0,
+    "c_fa": 10.0,
+    "p_spoof": 0.05
+  }
+}
